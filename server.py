@@ -6,9 +6,10 @@ em = EnMod()
 
 def get_msg():
 	m = input("You: ")
+	if(m == ""):
+		exit()
 	if(len(em.parser(m)) == 1):
 		m += " "
-
 	return m
 
 def run_server():
@@ -33,14 +34,14 @@ def run_server():
 		request = request.decode("utf-8")
 		em.reset()
 		em.upload(request)
-		em.decrypt()
+		try:
+			em.decrypt()
+		except IndexError:
+			print("Connection lost!")
+			exit()
 		request = em.decrypted()
-
-		if(request.lower() in ["close", "close ", "close  "]):
-			client_socket.send("closed".encode("utf-8"))
-			break
-
 		print(f"Client: {request}")
+
 		response = get_msg()
 		em.reset()
 		em.upload(response)

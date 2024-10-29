@@ -3,32 +3,62 @@ from os import system
 import socket
 
 em = EnMod()
+server_ip = None
+server_port = None
+client = None
 
 def get_msg():
 	m = input("You: ")
+	if(m == ""):
+		exit()
 	if(len(em.parser(m)) == 1):
 		m += " "
-
 	return m
 
-def run_client():
+def get_ip_port():
+	global server_ip, server_port, client
+	passed = False
+	print("Welcome to TextSender")
+	print("-~~~~~~~~~-~~~~~~~~~-")
+	while not passed:
+		try:
+			err_msg = ""
+			print("")
+			print("choose the server")
+			server_ip = input("IP:")
+			if(server_ip == ""):
+				exit()
+			try:
+				if len(em.parser(server_ip, ".")) != 4:
+					err_msg = "!! enter the ip address correctly"
+			except:
+				err_msg = "!! enter the ip address correctly"
+			server_port = int(input("port:"))
+			client.connect((server_ip, server_port))
 
+		except ConnectionRefusedError:
+			err_msg = "!! no matching servers"
+
+		except ValueError:
+			err_msg = "!! enter port number correctly"
+
+		except (socket.gaierror, OSError):
+			err_msg = "!! enter the ip address correctly"
+
+		else:
+			passed = True
+
+		print(err_msg)
+
+def run_client():
 	system("clear || cls")
+	global server_ip, server_port, client
 
 	client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-	server_ip = "127.0.01"
-	server_port = 8000
+	get_ip_port()
 
-	print("Welcome to TextSender")
-	print("-~~~~~~~~~-~~~~~~~~~-")
-	print("")
-	print("choose the server")
-	server_ip = input("IP:")
-	server_port = int(input("port:"))
-
-	client.connect((server_ip, server_port))
-	print(f"connected to the client!")
+	print(f"connected to the server!")
 	print("")
 
 	while True:
@@ -44,12 +74,12 @@ def run_client():
 		response = response.decode("utf-8")
 		em.reset()
 		em.upload(response)
-		em.decrypt()
+		try:
+			em.decrypt()
+		except IndexError:
+			print("connection lost!")
+			exit()
 		response = em.decrypted()
-
-		if(response.lower() == "close"):
-			break
-
 		print(f"Server: {response}")
 
 	client.close()
