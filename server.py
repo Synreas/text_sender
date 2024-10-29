@@ -12,12 +12,24 @@ def get_msg():
 		m += " "
 	return m
 
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        s.connect(('8.8.8.8', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
 def run_server():
 
 	system("clear || cls")
 
 	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	server_ip = "192.168.2.59"
+	server_ip = get_ip()
 	port = 8000
 
 	server.bind((server_ip, port))
